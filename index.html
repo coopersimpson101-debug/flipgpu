@@ -3,8 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>flipgpu — WebGPU PIC/FLIP + PBF fluid</title>
-  <meta name="description" content="Real-time 3D PIC/FLIP and Position Based Fluids running entirely in WebGPU compute shaders." />
+  <title>flipgpu · real-time PIC/FLIP + PBF fluids in WebGPU</title>
+  <meta name="description" content="Real-time 3D fluid simulation in your browser: a PIC/FLIP solver on a MAC grid and Position Based Fluids, hand-written in WebGPU compute shaders, with a screen-space fluid renderer." />
+  <meta name="theme-color" content="#0d1117" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230d1117'/%3E%3Cpath d='M4 22c4-6 8 2 12-3s6-9 12-5v12H4z' fill='%2360A5FA'/%3E%3Ccircle cx='22' cy='9' r='2' fill='%2393c5fd'/%3E%3Ccircle cx='26' cy='12' r='1.4' fill='%2393c5fd'/%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://coopersimpson101-debug.github.io/flipgpu/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="flipgpu · real-time PIC/FLIP + PBF fluids in WebGPU" />
+  <meta property="og:description" content="A 128k-particle fluid simulation running entirely in WebGPU compute shaders. Open it in your browser and push the water around." />
+  <meta property="og:url" content="https://coopersimpson101-debug.github.io/flipgpu/" />
+  <meta property="og:image" content="https://coopersimpson101-debug.github.io/flipgpu/og.png" />
+  <meta property="og:image:alt" content="A PIC/FLIP dam break rendered with a screen-space fluid surface" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="flipgpu · real-time fluids in WebGPU" />
+  <meta name="twitter:description" content="PIC/FLIP and Position Based Fluids, hand-written in WebGPU compute shaders." />
+  <meta name="twitter:image" content="https://coopersimpson101-debug.github.io/flipgpu/og.png" />
   <link rel="stylesheet" href="./src/ui/style.css" />
 </head>
 <body>
@@ -15,6 +28,7 @@
   <form id="ui" class="panel" onsubmit="return false">
     <header>
       <strong>flipgpu</strong>
+      <a class="gh-link" href="https://github.com/coopersimpson101-debug/flipgpu" target="_blank" rel="noopener">View on GitHub</a>
       <button type="button" id="collapse" title="collapse panel">–</button>
     </header>
     <div class="body">

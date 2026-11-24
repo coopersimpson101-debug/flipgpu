@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "flipgpu: real-time PIC/FLIP and PBF fluid simulation in WebGPU"
+type: software
+authors:
+  - name: "the flipgpu authors"
+abstract: "Real-time 3D fluid simulation in the browser: a PIC/FLIP solver on a MAC grid and a Position Based Fluids solver, written by hand in WebGPU compute shaders, with a screen-space fluid renderer."
+repository-code: "https://github.com/coopersimpson101-debug/flipgpu"
+url: "https://coopersimpson101-debug.github.io/flipgpu/"
+license: MIT
+version: 0.1.0
+keywords:
+  - fluid simulation
+  - pic/flip
+  - position based fluids
+  - webgpu
+  - wgsl

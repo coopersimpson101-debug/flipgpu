@@ -1,15 +1,57 @@
-# flipgpu
+<div align="center">
+
+<img src="docs/assets/banner.svg" alt="flipgpu: real-time 3D fluids in WebGPU compute" width="100%">
+
+[![CI](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/ci.yml/badge.svg)](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/ci.yml)
+[![Pages](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/pages.yml/badge.svg)](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/pages.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-60A5FA.svg)](LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-%2B%20WGSL-3178C6?logo=typescript&logoColor=white)](src)
+[![WebGPU](https://img.shields.io/badge/WebGPU-compute-60A5FA)](https://www.w3.org/TR/webgpu/)
+
+[![▶ Live demo](https://img.shields.io/badge/%E2%96%B6%20Live%20demo-open%20in%20your%20browser-60A5FA?style=for-the-badge)](https://coopersimpson101-debug.github.io/flipgpu/)
+
+</div>
 
 **Real-time 3D fluid simulation in the browser, running entirely on the GPU in WebGPU compute shaders.**
-A PIC/FLIP hybrid solver on a MAC staggered grid and a Position Based Fluids (SPH) solver share one
-renderer, one UI and one set of scenes, so you can switch solvers and compare them directly.
-No physics, math or rendering libraries: every kernel, transfer, solver, sort and shader is written by hand
-in TypeScript and WGSL.
+A PIC/FLIP solver on a MAC staggered grid and a Position Based Fluids (SPH) solver share one renderer,
+UI and set of scenes, so you can switch solvers and compare them live. Every kernel, transfer, solver,
+sort and shader is hand-written in TypeScript and WGSL, with no physics, maths or rendering libraries.
 
-**Live demo:** [https://coopersimpson101-debug.github.io/flipgpu/](https://coopersimpson101-debug.github.io/flipgpu/) (needs a WebGPU browser: Chrome/Edge 113+, Safari 26+)
+[Live demo](https://coopersimpson101-debug.github.io/flipgpu/) ·
+[The physics](#the-physics) ·
+[GPU pipeline](docs/gpu-pipeline.md) ·
+[Results](#results) ·
+[Status](#status)
 
-<!-- TODO for the author: record a GIF and put it at docs/media/dam-break.gif -->
-> **GIF slot:** `docs/media/dam-break.gif` (not recorded yet, see [TODO for the author](#todo-for-the-author))
+<div align="center">
+
+<img src="docs/media/dam-break.gif" alt="128k-particle PIC/FLIP dam break rendered with the screen-space fluid surface" width="640">
+
+<sub>Real output: the default scene (PIC/FLIP, 128k particles, 65×36×27 MAC grid, screen-space surface) captured
+frame by frame from the WebGPU canvas in a Chromium browser on an RTX 2060 by
+<a href="scripts/capture_gif.mjs"><code>scripts/capture_gif.mjs</code></a>. 80 frames: every 3rd of the first 238 frames (~4 s) of
+simulated time (the sim advances a fixed 1/60 s per frame).</sub>
+
+</div>
+
+## Highlights
+
+- **Two solvers, one app**: PIC/FLIP on a 3D MAC grid and Position Based Fluids, switchable at runtime on the same scenes.
+- **Float atomics without float atomics**: trilinear P2G splatting with 16.16 fixed-point `atomicAdd`, since WGSL has none for `f32`.
+- **Pressure projection on the GPU**: Jacobi or red-black SOR, with FLIP volume-drift correction and particle push-out.
+- **Adaptive CFL substepping** from a GPU `atomicMax` over particle speed, read back asynchronously.
+- **GPU counting-sort neighbour grid**: atomic counts, a multi-level prefix scan and a scatter, shared by both solvers.
+- **Screen-space fluid surface**: depth splat, bilateral filter, normals from depth, Schlick Fresnel and Beer–Lambert absorption.
+- **CPU references in double precision** (incl. MIC(0)-PCG), 31 vitest checks: hydrostatics to 1e-6, PIC vs FLIP energy, PBF bounds.
+
+## Quickstart
+
+```bash
+git clone https://github.com/coopersimpson101-debug/flipgpu && cd flipgpu
+npm install
+npm run dev     # http://localhost:5173 (WebGPU browser: Chrome/Edge 113+, Safari 26+)
+npm test        # CPU reference solvers, kernels, scan, scenes, camera maths
+```
 
 ---
 
@@ -57,6 +99,9 @@ flowchart LR
   GPU -->|stats: max speed, timestamps<br/>async mapAsync readback| CFL
 ```
 
+<details>
+<summary>Source layout</summary>
+
 ```
 src/
   main.ts               WebGPU init, frame loop, interaction, timestamp + CFL readback
@@ -77,7 +122,14 @@ tests/                  vitest suites
 docs/gpu-pipeline.md    per-kernel dispatch list and buffer layout
 ```
 
+</details>
+
 ## The physics
+
+Incompressible Navier–Stokes, operator splitting and the Helmholtz–Hodge projection, the MAC discretisation and pressure solvers, PIC vs FLIP, RK2 advection and drift correction, the CFL condition, SPH/PBF and the renderer.
+
+<details>
+<summary><b>Read the derivations</b> (7 sections)</summary>
 
 ### Incompressible Navier–Stokes
 
@@ -210,6 +262,8 @@ is the projected world radius, reconstruct normals from depth differences (choos
 difference at silhouettes), and shade with Schlick Fresnel F = F₀ + (1−F₀)(1−cosθ)⁵, F₀ = 0.02, mixing a
 reflected sky with refracted light attenuated by Beer–Lambert exp(−σ<sub>a</sub>·thickness).
 
+</details>
+
 ## Build, run, test
 
 ```bash
@@ -225,6 +279,14 @@ Requirements: Node 20+; a browser with WebGPU (Chrome/Edge 113+ desktop, Safari 
 
 Controls: **drag** push fluid · **Shift-drag** shake tank · **right-drag / Alt-drag** orbit · **wheel** zoom ·
 **Space** pause · **R** reset.
+
+### Regenerating the README visuals
+
+```bash
+npm run banner        # docs/assets/banner.svg: 2D dam break from the CPU reference solver (src/cpu/flip2d.ts)
+npm run capture:gif   # starts a local capture server, then in the demo page console:
+                      #   await import('http://127.0.0.1:8790/recorder.js')
+```
 
 ## Results
 
@@ -262,9 +324,14 @@ pane was throttled in the background, so **its timings are not representative an
 reported here.** The GPU kernels themselves have no automated tests (CI machines have no GPU); they are
 ports of the tested CPU references.
 
+![flipgpu in the browser: PIC/FLIP dam break with the stats overlay and control panel](docs/media/screenshot-ui.jpg)
+
+*Screenshot of the dev build in a Chromium-based WebGPU browser pane on the development machine (RTX 2060),
+2026-11-24. The overlay numbers are what that pane showed; they are not a benchmark.*
+
 ### Performance
 
-> Empty until measured on real hardware. See [TODO for the author](#todo-for-the-author).
+> ⏳ Empty until measured on real hardware with the tab in the foreground. See [Status](#status).
 
 | GPU | Browser | Solver | Particles | Grid | Pressure iters | sim ms / substep | substeps | FPS |
 |---|---|---|---|---|---|---|---|---|
@@ -274,11 +341,21 @@ ports of the tested CPU references.
 | | | PBF | 128k | – | 4 | | | |
 | | | PBF | 256k | – | 4 | | | |
 
-## Honest status
+## Status
 
-Working: everything listed in Features, both solvers, both render modes, all three scenes, UI and stats.
+✅ done and tested here · 🧪 built, partly verified · ⏳ needs the author's device or browser
 
-Known limitations:
+| Item | State | Notes |
+|---|:---:|---|
+| CPU reference solvers, kernels, scan, scenes, camera maths | ✅ | 31 vitest checks (table above), run in CI |
+| `npm run build`, CI, GitHub Pages deploy | ✅ | hosted CI has no GPU |
+| All WGSL modules compile; FLIP and PBF scenes run; both renderers; timestamp queries | 🧪 | observed in a Chromium WebGPU browser pane on an RTX 2060; the GPU kernels have no automated tests (they are ports of the tested CPU references) |
+| README GIF and screenshot | ✅ | captured from the real canvas, `npm run capture:gif` |
+| Drop-scene GIF and FLIP-vs-PIC side-by-side (`docs/media/drop.gif`, ...) | ⏳ | same capture script, other scene / settings |
+| Performance table (above) | ⏳ | GPU model, browser version and the overlay's *sim ms/substep*, tab in the foreground |
+| Cross-browser check: Chrome · Edge · Safari · Firefox · Android Chrome | ⏳ | record results here |
+
+**Known limitations:**
 - Static, axis-aligned tank only; "drag container" is implemented as shaking the tank via a fictitious body
   force in the tank frame, the tank itself does not move on screen.
 - Jacobi/RB-SOR with a fixed iteration count leaves residual divergence at high resolution (the volume
@@ -300,20 +377,6 @@ Known limitations:
 - [ ] Foam/spray/bubble secondary particles; narrow-range filter (Truong & Yuksel 2018)
 - [ ] GPU readback-based regression tests in a headless WebGPU runner
 
-## TODO for the author
-
-These need your GPU / devices and are intentionally left empty:
-
-1. **Enable GitHub Pages:** repository *Settings → Pages → Build and deployment → Source: GitHub Actions*.
-   Push to `main`; `.github/workflows/pages.yml` tests, builds and deploys. Then replace `<user>` in the demo
-   link above.
-2. **GIF:** record ~8 s of the dam break (surface mode) and the drop scene; save as
-   `docs/media/dam-break.gif` and `docs/media/drop.gif`, and update the slot at the top.
-   - [ ] dam-break.gif  - [ ] drop.gif  - [ ] flip-vs-pic side-by-side
-3. **Performance table:** fill in GPU model, browser version, and the overlay's *sim ms/substep* (GPU
-   timestamps) for each row, with the browser tab in the foreground.
-4. **Cross-browser check:** Chrome · Edge · Safari · Firefox · Android Chrome (record results here).
-
 ## References
 
 - R. Bridson, *Fluid Simulation for Computer Graphics*, 2nd ed., CRC Press, 2015.
@@ -332,4 +395,4 @@ These need your GPU / devices and are intentionally left empty:
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](LICENSE). Contributions are welcome, see [CONTRIBUTING.md](CONTRIBUTING.md). To cite this software, see [CITATION.cff](CITATION.cff).
