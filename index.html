@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>flipgpu — WebGPU PIC/FLIP + PBF fluid</title>
+  <meta name="description" content="Real-time 3D PIC/FLIP and Position Based Fluids running entirely in WebGPU compute shaders." />
+  <link rel="stylesheet" href="./src/ui/style.css" />
+</head>
+<body>
+  <canvas id="gfx"></canvas>
+
+  <div id="stats" class="panel" aria-live="polite">initialising…</div>
+
+  <form id="ui" class="panel" onsubmit="return false">
+    <header>
+      <strong>flipgpu</strong>
+      <button type="button" id="collapse" title="collapse panel">–</button>
+    </header>
+    <div class="body">
+      <label>Solver
+        <select id="solver">
+          <option value="flip" selected>PIC/FLIP (MAC grid)</option>
+          <option value="pbf">SPH · Position Based Fluids</option>
+        </select>
+      </label>
+      <label>Scene
+        <select id="scene">
+          <option value="dam" selected>Dam break</option>
+          <option value="double">Double dam</option>
+          <option value="drop">Drop into pool</option>
+        </select>
+      </label>
+      <label>Particles
+        <select id="count">
+          <option value="16000">16k</option>
+          <option value="32000">32k</option>
+          <option value="64000">64k</option>
+          <option value="128000" selected>128k</option>
+          <option value="256000">256k</option>
+          <option value="512000">512k</option>
+        </select>
+      </label>
+      <div class="row">
+        <button type="button" id="reset">Reset scene</button>
+        <button type="button" id="pause">Pause</button>
+        <button type="button" id="step">Step</button>
+      </div>
+      <fieldset>
+        <legend>Physics</legend>
+        <label class="flip-only">FLIP ratio <output id="flipRatioOut"></output>
+          <input id="flipRatio" type="range" min="0" max="1" step="0.01" value="0.95" /></label>
+        <label>Viscosity <output id="viscosityOut"></output>
+          <input id="viscosity" type="range" min="0" max="1" step="0.01" value="0.03" /></label>
+        <label>Gravity <output id="gravityOut"></output>
+          <input id="gravity" type="range" min="0" max="20" step="0.1" value="9.81" /></label>
+        <label>Pressure iterations <output id="pressureItersOut"></output>
+          <input id="pressureIters" type="range" min="4" max="200" step="1" value="40" /></label>
+        <label class="flip-only">Pressure solver
+          <select id="pressureSolver">
+            <option value="rbgs" selected>Red-black SOR (ω=1.6)</option>
+            <option value="jacobi">Jacobi</option>
+          </select>
+        </label>
+        <label class="flip-only">Volume correction <output id="densityCorrectionOut"></output>
+          <input id="densityCorrection" type="range" min="0" max="1" step="0.05" value="0.3" /></label>
+        <label>CFL number <output id="cflOut"></output>
+          <input id="cfl" type="range" min="0.3" max="3" step="0.1" value="1.5" /></label>
+      </fieldset>
+      <fieldset>
+        <legend>Rendering</legend>
+        <label>Mode
+          <select id="renderMode">
+            <option value="surface" selected>Screen-space surface</option>
+            <option value="particles">Sphere impostors</option>
+          </select>
+        </label>
+      </fieldset>
+      <p class="hint">
+        <b>Drag</b> push fluid · <b>Shift-drag</b> shake tank<br />
+        <b>Right-drag / Alt-drag</b> orbit · <b>Wheel</b> zoom
+      </p>
+    </div>
+  </form>
+
+  <div id="nogpu" hidden>
+    <div>
+      <h1>WebGPU is not available</h1>
+      <p id="nogpu-reason"></p>
+      <p>flipgpu runs its whole simulation in WebGPU compute shaders. Try a recent Chrome or Edge (113+)
+        on desktop, Safari 26+, or Firefox 141+ on Windows. On Linux Chrome you may need to enable
+        <code>chrome://flags/#enable-unsafe-webgpu</code>.</p>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.ts"></script>
+</body>
+</html>
