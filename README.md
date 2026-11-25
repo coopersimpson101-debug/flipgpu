@@ -3,6 +3,7 @@
 <img src="docs/assets/banner.svg" alt="flipgpu: real-time 3D fluids in WebGPU compute" width="100%">
 
 [![CI](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/ci.yml/badge.svg)](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/coopersimpson101-debug/flipgpu?color=60A5FA&label=release)](https://github.com/coopersimpson101-debug/flipgpu/releases/latest)
 [![Pages](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/pages.yml/badge.svg)](https://github.com/coopersimpson101-debug/flipgpu/actions/workflows/pages.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-60A5FA.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-%2B%20WGSL-3178C6?logo=typescript&logoColor=white)](src)
